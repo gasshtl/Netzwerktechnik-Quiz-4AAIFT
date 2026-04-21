@@ -1,46 +1,246 @@
-
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netzwerktechnik Quiz – 4AAIFT</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-#app { padding: 1rem 0; max-width: 680px; }
-#progress-bar-bg { height: 6px; background: var(--color-border-tertiary); border-radius: 3px; margin-bottom: 1.25rem; }
-#progress-bar { height: 6px; background: var(--color-text-info); border-radius: 3px; transition: width 0.4s ease; }
-#meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; font-size: 13px; color: var(--color-text-secondary); }
-#score-badge { background: var(--color-background-success); color: var(--color-text-success); padding: 3px 10px; border-radius: 12px; font-weight: 500; font-size: 13px; }
-#card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; }
-#question-text { font-size: 16px; font-weight: 500; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 1.25rem; }
-.option { display: flex; align-items: flex-start; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 15px; color: var(--color-text-primary); line-height: 1.5; }
-.option:hover:not(.disabled) { border-color: var(--color-border-info); background: var(--color-background-info); }
-.option.selected { border-color: var(--color-border-info); background: var(--color-background-info); }
-.option.correct { border-color: var(--color-border-success); background: var(--color-background-success); color: var(--color-text-success); }
-.option.wrong { border-color: var(--color-border-danger); background: var(--color-background-danger); color: var(--color-text-danger); }
-.option.disabled { cursor: default; }
-.opt-letter { font-weight: 500; min-width: 18px; }
-#btn-check { width: 100%; margin-top: 1rem; padding: 0.65rem 1rem; font-size: 15px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; transition: opacity 0.15s; }
-#btn-check:hover { opacity: 0.85; }
-#btn-check:disabled { opacity: 0.35; cursor: default; }
-#explanation { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--color-background-secondary); border-left: 3px solid var(--color-border-info); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; display: none; }
-#btn-next { width: 100%; margin-top: 0.875rem; padding: 0.65rem 1rem; font-size: 15px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; transition: background 0.15s; display: none; }
-#summary { display: none; padding: 1.5rem; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
-#sum-title { font-size: 20px; font-weight: 500; margin-bottom: 1.25rem; color: var(--color-text-primary); }
-.sum-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
-.sum-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.875rem; text-align: center; }
-.sum-stat .val { font-size: 22px; font-weight: 500; }
-.sum-stat .lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
-.sum-stat.s-correct .val { color: var(--color-text-success); }
-.sum-stat.s-wrong .val { color: var(--color-text-danger); }
-#sum-review { margin-top: 1rem; }
-.rev-item { padding: 0.75rem 0; border-top: 0.5px solid var(--color-border-tertiary); font-size: 13px; line-height: 1.6; }
-.rev-item .rev-q { color: var(--color-text-primary); font-weight: 500; margin-bottom: 2px; }
-.rev-item .rev-ans { color: var(--color-text-secondary); }
-.rev-item .rev-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-right: 6px; font-weight: 500; }
-.tag-ok { background: var(--color-background-success); color: var(--color-text-success); }
-.tag-err { background: var(--color-background-danger); color: var(--color-text-danger); }
-#btn-restart { margin-top: 1.25rem; width: 100%; padding: 0.65rem; font-size: 15px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; }
-</style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a1e;
+    color: #e8e8ec;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #e8e8ec;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  #progress-wrap {
+    background: #2a2a30;
+    border-radius: 4px;
+    height: 6px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 6px;
+    background: #378ADD;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  #meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    font-size: 13px;
+    color: #9a9aa8;
+  }
+
+  #score-badge {
+    background: #1a3a1a;
+    color: #6abf6a;
+    border: 1px solid #2a5a2a;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 13px;
+  }
+
+  #card {
+    background: #22222a;
+    border: 1px solid #333340;
+    border-radius: 14px;
+    padding: 1.75rem;
+  }
+
+  #question-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #e8e8ec;
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid #333340;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 15px;
+    color: #d0d0dc;
+    line-height: 1.5;
+    background: #1e1e26;
+  }
+  .option:hover:not(.disabled) {
+    border-color: #378ADD;
+    background: #1a2a3a;
+    color: #e8e8ec;
+  }
+  .option.selected {
+    border-color: #378ADD;
+    background: #1a2a3a;
+    color: #85B7EB;
+  }
+  .option.correct {
+    border-color: #3B6D11;
+    background: #1a2e10;
+    color: #97C459;
+  }
+  .option.wrong {
+    border-color: #A32D2D;
+    background: #2e1010;
+    color: #F09595;
+  }
+  .option.disabled { cursor: default; }
+
+  .opt-letter {
+    font-weight: 500;
+    min-width: 20px;
+    opacity: 0.7;
+  }
+
+  #btn-check {
+    width: 100%;
+    margin-top: 1.1rem;
+    padding: 0.75rem 1rem;
+    font-size: 15px;
+    background: #378ADD;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s, opacity 0.15s;
+    letter-spacing: 0.01em;
+  }
+  #btn-check:hover:not(:disabled) { background: #185FA5; }
+  #btn-check:disabled { opacity: 0.3; cursor: default; background: #378ADD; }
+
+  #explanation {
+    margin-top: 1rem;
+    padding: 0.875rem 1rem;
+    background: #1a1a26;
+    border-left: 3px solid #378ADD;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    color: #9a9ab8;
+    line-height: 1.75;
+    display: none;
+  }
+
+  #btn-next {
+    width: 100%;
+    margin-top: 0.875rem;
+    padding: 0.75rem 1rem;
+    font-size: 15px;
+    background: #2a2a34;
+    color: #e8e8ec;
+    border: 1px solid #444454;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+    display: none;
+  }
+  #btn-next:hover { background: #333340; }
+
+  #summary {
+    display: none;
+    background: #22222a;
+    border: 1px solid #333340;
+    border-radius: 14px;
+    padding: 1.75rem;
+  }
+
+  #sum-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #e8e8ec;
+    margin-bottom: 1.5rem;
+  }
+
+  .sum-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .sum-stat {
+    background: #1e1e26;
+    border: 1px solid #333340;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .sum-stat .val { font-size: 26px; font-weight: 500; }
+  .sum-stat .lbl { font-size: 12px; color: #9a9aa8; margin-top: 4px; }
+  .s-correct .val { color: #6abf6a; }
+  .s-wrong .val { color: #f09595; }
+  .s-pct .val { color: #85B7EB; }
+
+  #sum-review { margin-top: 1rem; }
+  .rev-item {
+    padding: 0.875rem 0;
+    border-top: 1px solid #2a2a34;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  .rev-q { color: #d0d0dc; font-weight: 500; margin-bottom: 3px; }
+  .rev-ans { color: #9a9aa8; }
+  .rev-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+    font-weight: 500;
+  }
+  .tag-ok { background: #1a3a1a; color: #6abf6a; border: 1px solid #2a5a2a; }
+  .tag-err { background: #2e1010; color: #f09595; border: 1px solid #5a1a1a; }
+
+  #btn-restart {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 15px;
+    background: #378ADD;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  #btn-restart:hover { background: #185FA5; }
+</style>
+</head>
+<body>
 <div id="app">
-  <div id="progress-bar-bg"><div id="progress-bar" style="width:0%"></div></div>
+  <h1>Netzwerktechnik Quiz – 4AAIFT</h1>
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
   <div id="meta">
     <span id="q-counter">Frage 1 von 40</span>
     <span id="score-badge">Punkte: 0</span>
@@ -53,11 +253,11 @@ body { font-family: var(--font-sans); }
     <button id="btn-next">Nächste Frage →</button>
   </div>
   <div id="summary">
-    <div id="sum-title">Quiz abgeschlossen</div>
+    <div id="sum-title"></div>
     <div class="sum-stats">
       <div class="sum-stat s-correct"><div class="val" id="s-correct">0</div><div class="lbl">Richtig</div></div>
       <div class="sum-stat s-wrong"><div class="val" id="s-wrong">0</div><div class="lbl">Falsch</div></div>
-      <div class="sum-stat"><div class="val" id="s-pct">0%</div><div class="lbl">Ergebnis</div></div>
+      <div class="sum-stat s-pct"><div class="val" id="s-pct">0%</div><div class="lbl">Ergebnis</div></div>
     </div>
     <div id="sum-review"></div>
     <button id="btn-restart">Quiz neu starten</button>
@@ -114,7 +314,7 @@ const letters=['A','B','C','D'];
 
 function render(){
   const d=Q[cur];
-  document.getElementById('progress-bar').style.width=((cur/Q.length)*100)+'%';
+  document.getElementById('progress-bar').style.width=(((cur)/Q.length)*100)+'%';
   document.getElementById('q-counter').textContent='Frage '+(cur+1)+' von '+Q.length;
   document.getElementById('score-badge').textContent='Punkte: '+score;
   document.getElementById('question-text').textContent=(cur+1)+'. '+d.q;
@@ -175,9 +375,8 @@ document.getElementById('btn-next').addEventListener('click',()=>{
 });
 
 function showSummary(){
+  document.getElementById('progress-bar').style.width='100%';
   document.getElementById('card').style.display='none';
-  document.getElementById('meta').style.display='none';
-  document.getElementById('progress-bar-bg').style.display='none';
   const wrong=Q.length-score;
   const pct=Math.round((score/Q.length)*100);
   document.getElementById('s-correct').textContent=score;
@@ -190,12 +389,12 @@ function showSummary(){
   else medal='Mehr Lernen nötig.';
   document.getElementById('sum-title').textContent='Ergebnis: '+score+'/'+Q.length+' – '+medal;
   const rv=document.getElementById('sum-review');
-  rv.innerHTML='<div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:4px;">Detailübersicht</div>';
+  rv.innerHTML='<div style="font-size:13px;font-weight:500;color:#9a9aa8;margin-bottom:4px;">Detailübersicht aller Fragen</div>';
   results.forEach((r,i)=>{
     const d=document.createElement('div');
     d.className='rev-item';
     const tag=r.ok?'<span class="rev-tag tag-ok">Richtig</span>':'<span class="rev-tag tag-err">Falsch</span>';
-    const ans=r.ok?'':(': Richtig wäre "'+letters[r.correct]+') '+r.opts[r.correct]+'"');
+    const ans=r.ok?'':('. Richtig wäre: '+letters[r.correct]+') '+r.opts[r.correct]);
     d.innerHTML='<div class="rev-q">'+tag+(i+1)+'. '+r.q+'</div><div class="rev-ans">Deine Antwort: '+letters[r.chosen]+') '+r.opts[r.chosen]+ans+'</div>';
     rv.appendChild(d);
   });
@@ -206,10 +405,10 @@ document.getElementById('btn-restart').addEventListener('click',()=>{
   cur=0; score=0; selected=null; checked=false; results.length=0;
   document.getElementById('summary').style.display='none';
   document.getElementById('card').style.display='block';
-  document.getElementById('meta').style.display='flex';
-  document.getElementById('progress-bar-bg').style.display='block';
   render();
 });
 
 render();
 </script>
+</body>
+</html>
