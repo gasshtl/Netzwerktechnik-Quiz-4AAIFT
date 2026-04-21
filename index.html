@@ -1,0 +1,215 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { padding: 1rem 0; max-width: 680px; }
+#progress-bar-bg { height: 6px; background: var(--color-border-tertiary); border-radius: 3px; margin-bottom: 1.25rem; }
+#progress-bar { height: 6px; background: var(--color-text-info); border-radius: 3px; transition: width 0.4s ease; }
+#meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; font-size: 13px; color: var(--color-text-secondary); }
+#score-badge { background: var(--color-background-success); color: var(--color-text-success); padding: 3px 10px; border-radius: 12px; font-weight: 500; font-size: 13px; }
+#card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; }
+#question-text { font-size: 16px; font-weight: 500; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 1.25rem; }
+.option { display: flex; align-items: flex-start; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 15px; color: var(--color-text-primary); line-height: 1.5; }
+.option:hover:not(.disabled) { border-color: var(--color-border-info); background: var(--color-background-info); }
+.option.selected { border-color: var(--color-border-info); background: var(--color-background-info); }
+.option.correct { border-color: var(--color-border-success); background: var(--color-background-success); color: var(--color-text-success); }
+.option.wrong { border-color: var(--color-border-danger); background: var(--color-background-danger); color: var(--color-text-danger); }
+.option.disabled { cursor: default; }
+.opt-letter { font-weight: 500; min-width: 18px; }
+#btn-check { width: 100%; margin-top: 1rem; padding: 0.65rem 1rem; font-size: 15px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; transition: opacity 0.15s; }
+#btn-check:hover { opacity: 0.85; }
+#btn-check:disabled { opacity: 0.35; cursor: default; }
+#explanation { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--color-background-secondary); border-left: 3px solid var(--color-border-info); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; display: none; }
+#btn-next { width: 100%; margin-top: 0.875rem; padding: 0.65rem 1rem; font-size: 15px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; transition: background 0.15s; display: none; }
+#summary { display: none; padding: 1.5rem; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
+#sum-title { font-size: 20px; font-weight: 500; margin-bottom: 1.25rem; color: var(--color-text-primary); }
+.sum-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+.sum-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.875rem; text-align: center; }
+.sum-stat .val { font-size: 22px; font-weight: 500; }
+.sum-stat .lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.sum-stat.s-correct .val { color: var(--color-text-success); }
+.sum-stat.s-wrong .val { color: var(--color-text-danger); }
+#sum-review { margin-top: 1rem; }
+.rev-item { padding: 0.75rem 0; border-top: 0.5px solid var(--color-border-tertiary); font-size: 13px; line-height: 1.6; }
+.rev-item .rev-q { color: var(--color-text-primary); font-weight: 500; margin-bottom: 2px; }
+.rev-item .rev-ans { color: var(--color-text-secondary); }
+.rev-item .rev-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-right: 6px; font-weight: 500; }
+.tag-ok { background: var(--color-background-success); color: var(--color-text-success); }
+.tag-err { background: var(--color-background-danger); color: var(--color-text-danger); }
+#btn-restart { margin-top: 1.25rem; width: 100%; padding: 0.65rem; font-size: 15px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 500; }
+</style>
+
+<div id="app">
+  <div id="progress-bar-bg"><div id="progress-bar" style="width:0%"></div></div>
+  <div id="meta">
+    <span id="q-counter">Frage 1 von 40</span>
+    <span id="score-badge">Punkte: 0</span>
+  </div>
+  <div id="card">
+    <div id="question-text"></div>
+    <div id="options"></div>
+    <button id="btn-check" disabled>Antwort prüfen</button>
+    <div id="explanation"></div>
+    <button id="btn-next">Nächste Frage →</button>
+  </div>
+  <div id="summary">
+    <div id="sum-title">Quiz abgeschlossen</div>
+    <div class="sum-stats">
+      <div class="sum-stat s-correct"><div class="val" id="s-correct">0</div><div class="lbl">Richtig</div></div>
+      <div class="sum-stat s-wrong"><div class="val" id="s-wrong">0</div><div class="lbl">Falsch</div></div>
+      <div class="sum-stat"><div class="val" id="s-pct">0%</div><div class="lbl">Ergebnis</div></div>
+    </div>
+    <div id="sum-review"></div>
+    <button id="btn-restart">Quiz neu starten</button>
+  </div>
+</div>
+
+<script>
+const Q = [
+  {q:"Welcher Prozess beschreibt die Entscheidung eines Routers, über welches Interface ein IP-Paket weitergeleitet wird?",opts:["Segmentierung","Routing","Adressauflösung","Handshaking"],ans:1,exp:"Routing ist der Prozess der Wegfindung auf Layer 3 – der Router entscheidet anhand seiner Routing-Tabelle, wohin ein Paket geschickt wird."},
+  {q:"Auf welcher Schicht des OSI-Modells arbeitet ein Router primär?",opts:["Layer 2 (Data Link)","Layer 3 (Network)","Layer 4 (Transport)","Layer 7 (Application)"],ans:1,exp:"Router arbeiten auf der Vermittlungsschicht (Layer 3), wo IP-Adressen ausgewertet werden."},
+  {q:"Was ist das entscheidende Kriterium der \"Longest Prefix Match\"-Regel?",opts:["Die niedrigste Metrik gewinnt.","Die Route mit der kleinsten AD wird gewählt.","Der Eintrag mit der längsten passenden Präfix-Übereinstimmung wird gewählt.","Es wird immer die Default Route bevorzugt."],ans:2,exp:"Spezifischere Routen mit längeren Subnetzmasken werden immer bevorzugt, da sie das Ziel genauer beschreiben."},
+  {q:"Was bewertet die Administrative Distanz (AD)?",opts:["Die Geschwindigkeit einer Leitung.","Die Anzahl der Hops zum Ziel.","Die Glaubwürdigkeit der Quelle einer Route.","Die physikalische Entfernung zwischen Routern."],ans:2,exp:"Die AD ist ein Maß für die Vertrauenswürdigkeit der Routenquelle – je niedriger, desto vertrauenswürdiger."},
+  {q:"Welchen Standardwert für die AD hat eine direkt verbundene Route bei Cisco?",opts:["0","1","90","110"],ans:0,exp:"Direkt verbundene Netze sind am vertrauenswürdigsten und erhalten die AD 0."},
+  {q:"Was ist die Metrik des Routing-Protokolls RIP?",opts:["Bandbreite","Delay","Hop Count","Cost"],ans:2,exp:"RIP zählt einfach die Anzahl der Router-Hops (max. 15 Hops erreichbar)."},
+  {q:"Was passiert, wenn ein Router keinen spezifischen Eintrag für ein Zielnetz findet?",opts:["Das Paket wird an alle Interfaces gesendet.","Das Paket wird verworfen, sofern keine Default Route existiert.","Der Router fragt beim Absender nach.","Das Paket wird im Cache gespeichert."],ans:1,exp:"Ohne passende Route oder Default Route wird das Paket verworfen (dropped)."},
+  {q:"Wie lautet die IP-Adresse der Default Route (Gateway of Last Resort)?",opts:["127.0.0.1","255.255.255.255","0.0.0.0/0","169.254.0.0"],ans:2,exp:"0.0.0.0/0 deckt alle möglichen Ziele ab und dient als Auffangroute."},
+  {q:"Was beschreibt der Begriff \"Uptime\" bei einem Netzwerkgerät?",opts:["Die maximale Geschwindigkeit der Schnittstellen.","Wie lange das Gerät bereits ohne Unterbrechung läuft.","Die Zeit bis zum nächsten Wartungsintervall.","Die Antwortzeit bei einem Ping-Befehl."],ans:1,exp:"Uptime zeigt die Stabilität bzw. Laufzeit eines Systems seit dem letzten Neustart."},
+  {q:"Welcher Protocol Code steht in einer Cisco-Routingtabelle für eine statische Route?",opts:["C","D","S","R"],ans:2,exp:"'S' steht für Static. 'C' = Connected, 'D' = EIGRP, 'R' = RIP."},
+  {q:"Was bedeutet die Metrik 16 bei dem Protokoll RIP?",opts:["Das Ziel ist in 16 Sprüngen erreichbar.","Das Ziel ist unendlich weit weg bzw. nicht erreichbar.","Die Route ist besonders schnell.","Es handelt sich um eine IPv6-Route."],ans:1,exp:"Metrik 16 gilt bei RIP als 'Unendlich' (Infinity) – das Ziel ist nicht erreichbar."},
+  {q:"Welcher Mechanismus verhindert bei RIP, dass eine gelernte Route über dasselbe Interface zurückgesendet wird?",opts:["Longest Prefix Match","Three-Way-Handshake","Split Horizon","NAT Overload"],ans:2,exp:"Split Horizon verhindert Routing-Loops, indem Informationen nicht über das Interface zurückgesendet werden, von dem sie empfangen wurden."},
+  {q:"Was ist der Hauptunterschied zwischen RIPv1 und RIPv2?",opts:["RIPv2 unterstützt kein Subnetting.","RIPv1 verwendet Multicast.","RIPv2 ist classless und sendet die Subnetzmaske mit.","RIPv1 ist schneller als RIPv2."],ans:2,exp:"RIPv2 unterstützt Subnetting/VLSM, indem es die Subnetzmaske mit den Routing-Updates sendet."},
+  {q:"Welches dynamische Routing-Protokoll nutzt eine Kombination aus Bandbreite und Delay als Metrik?",opts:["RIP","OSPF","EIGRP","BGP"],ans:2,exp:"EIGRP nutzt eine komplexe Metrik-Formel, die standardmäßig Bandbreite und Delay kombiniert."},
+  {q:"Was ist die Aufgabe des DHCP-Protokolls?",opts:["Namen in IP-Adressen auflösen.","Automatische Zuweisung von Netzwerkkonfigurationsdaten.","Pakete zwischen verschiedenen Subnetzen routen.","Überwachung der Router-Uptime."],ans:1,exp:"DHCP konfiguriert Clients automatisch mit IP-Adresse, Subnetzmaske, Gateway und DNS."},
+  {q:"Wofür steht das Akronym DORA im DHCP-Kontext?",opts:["Discovery, Optimization, Routing, Analysis","Discover, Offer, Request, Acknowledge","Data, Output, Resource, Access","Dynamic, Open, Reliable, Automatic"],ans:1,exp:"Der klassische DHCP-Ablauf: Discover → Offer → Request → Acknowledge (DORA)."},
+  {q:"Welche Quell-IP-Adresse verwendet ein Client beim ersten \"DHCP Discover\"?",opts:["127.0.0.1","169.254.1.1","0.0.0.0","Die Adresse des DNS-Servers."],ans:2,exp:"Da der Client noch keine IP hat, verwendet er 0.0.0.0 als Quelladresse und 255.255.255.255 als Broadcast-Ziel."},
+  {q:"Was macht ein DHCP Relay Agent (IP Helper)?",opts:["Er vergibt IP-Adressen, wenn der Server ausfällt.","Er leitet DHCP-Broadcasts als Unicast an einen Server in einem anderen Subnetz weiter.","Er blockiert unbefugte DHCP-Anfragen.","Er speichert IP-Adressen zwischen."],ans:1,exp:"Broadcasts passieren keine Router; der Relay Agent wandelt den Broadcast in einen Unicast um und leitet ihn weiter."},
+  {q:"Was beschreibt die \"T1\"-Zeit bei einem DHCP-Lease?",opts:["Den Zeitpunkt des Ablaufs der Adresse.","Den Zeitpunkt (nach 50% der Lease-Dauer), an dem der Client die Verlängerung versucht.","Die Zeit, die ein Paket zum Server benötigt.","Die Dauer des Boot-Vorgangs."],ans:1,exp:"Bei T1 (50% der Lease-Zeit) versucht der Client, seinen Lease direkt beim DHCP-Server zu verlängern."},
+  {q:"Welcher Port wird standardmäßig vom DHCP-Server verwendet?",opts:["UDP 53","TCP 80","UDP 67","TCP 443"],ans:2,exp:"Port 67 ist der Server-Port (DHCP), Port 68 ist der Client-Port."},
+  {q:"Was ist APIPA (Automatic Private IP Addressing)?",opts:["Ein Protokoll zur schnellen Datenübertragung.","Ein Windows-Fallback-Mechanismus, wenn kein DHCP-Server erreichbar ist.","Ein Sicherheitsstandard für WLANs.","Eine Methode zur Verschlüsselung von IPs."],ans:1,exp:"APIPA ist ein Fallback-Mechanismus: Wenn kein DHCP-Server antwortet, weist Windows automatisch eine Adresse im 169.254.x.x-Bereich zu."},
+  {q:"Welcher IP-Bereich ist für APIPA reserviert?",opts:["10.0.0.0 bis 10.255.255.255","192.168.0.0 bis 192.168.255.255","169.254.0.1 bis 169.254.255.254","172.16.0.0 bis 172.31.255.255"],ans:2,exp:"Der Bereich 169.254.x.x ist laut RFC 3927 fest für APIPA (link-local) reserviert."},
+  {q:"Sind APIPA-Adressen im Internet routbar?",opts:["Ja, uneingeschränkt.","Nein, sie sind link-local und nur im lokalen Netz gültig.","Nur über einen speziellen Proxy.","Ja, aber nur mit IPv6."],ans:1,exp:"APIPA-Pakete werden von Routern nicht weitergeleitet – sie sind nur im direkten lokalen Segment gültig."},
+  {q:"Welches Protokoll wird von APIPA genutzt, um Adresskonflikte im lokalen Netz zu vermeiden?",opts:["DHCP","DNS","ARP","RIP"],ans:2,exp:"APIPA verwendet ARP (Address Resolution Protocol), um zu prüfen, ob die zufällig gewählte Adresse bereits im Netz vergeben ist."},
+  {q:"Auf welcher OSI-Schicht arbeitet der Transport Layer?",opts:["Schicht 2","Schicht 3","Schicht 4","Schicht 7"],ans:2,exp:"Der Transport Layer ist Schicht 4 des OSI-Modells und verantwortet Ende-zu-Ende-Kommunikation."},
+  {q:"Was ist die Dateneinheit (PDU) der Transportschicht?",opts:["Frame","Paket","Segment","Bit"],ans:2,exp:"Die PDU auf Layer 4 ist das Segment (bei TCP) bzw. Datagramm (bei UDP)."},
+  {q:"Welches Protokoll der Transportschicht ist verbindungsorientiert und garantiert die Zustellung?",opts:["UDP","IP","TCP","ICMP"],ans:2,exp:"TCP garantiert durch Bestätigungen (ACKs), Sequenznummern und Neuübertragungen die vollständige und korrekte Zustellung."},
+  {q:"Was ist ein \"Socket\"?",opts:["Eine Steckverbindung am Router.","Die Kombination aus IP-Adresse und Portnummer.","Ein spezielles Kabel für Glasfaser.","Ein Speicherbereich in der CPU."],ans:1,exp:"Ein Socket adressiert eindeutig eine Anwendung auf einem Host: IP-Adresse + Portnummer."},
+  {q:"Wie viele Bits ist eine Portnummer lang?",opts:["8 Bit","16 Bit","32 Bit","48 Bit"],ans:1,exp:"Ports reichen von 0 bis 65535 – das entspricht 16 Bit (2^16 = 65536 Werte)."},
+  {q:"Wofür dient der \"Three-Way-Handshake\" bei TCP?",opts:["Zur Kompression von Daten.","Zum Aufbau einer zuverlässigen Verbindung zwischen Sender und Empfänger.","Zur Verschlüsselung des Passworts.","Zum Beenden einer Sitzung."],ans:1,exp:"SYN → SYN-ACK → ACK – dieser Ablauf stellt sicher, dass beide Seiten sende- und empfangsbereit sind."},
+  {q:"Was bewirkt die \"Window Size\" bei TCP?",opts:["Sie legt die Größe des Browserfensters fest.","Sie dient der Flusskontrolle (Flow Control).","Sie bestimmt die maximale Kabellänge.","Sie ist ein Teil der DNS-Auflösung."],ans:1,exp:"Die Window Size regelt, wie viele Daten gesendet werden dürfen, bevor eine Bestätigung (ACK) nötig ist."},
+  {q:"Welches Protokoll wird typischerweise für Echtzeitanwendungen wie VoIP oder Streaming verwendet?",opts:["TCP","HTTP","UDP","FTP"],ans:2,exp:"UDP ist schneller, da es keine Verbindungen aufbaut und keine Bestätigungen abwartet – ideal für zeitkritische Anwendungen."},
+  {q:"Was ist die Hauptaufgabe von DNS (Domain Name System)?",opts:["Zuweisung von IP-Adressen an neue Geräte.","Übersetzung von Domainnamen in IP-Adressen.","Sicherung des Netzwerks gegen Viren.","Routing von E-Mails."],ans:1,exp:"DNS ist das 'Telefonbuch' des Internets: Es übersetzt lesbare Namen wie google.com in IP-Adressen."},
+  {q:"Welcher Port wird standardmäßig für DNS-Anfragen genutzt?",opts:["21","53","80","110"],ans:1,exp:"Port 53 ist der Standard-Port für DNS – sowohl über UDP (Anfragen) als auch TCP (Zonentransfer)."},
+  {q:"Was ist ein FQDN (Fully Qualified Domain Name)?",opts:["Eine IP-Adresse in Hexadezimalform.","Ein vollständiger Domainname inklusive aller Ebenen bis zur Root.","Ein Benutzername im Active Directory.","Die MAC-Adresse eines Servers."],ans:1,exp:"Ein FQDN enthält alle Ebenen: Hostname.Domain.TLD. (z.B. www.example.com.) – der Punkt am Ende steht für die Root."},
+  {q:"Welcher DNS-Record-Typ ordnet einer Domain eine IPv4-Adresse zu?",opts:["AAAA","MX","A","CNAME"],ans:2,exp:"'A' steht für Address und zeigt auf eine IPv4-Adresse. AAAA wäre der entsprechende Record für IPv6."},
+  {q:"Was bedeutet eine \"rekursive\" DNS-Anfrage?",opts:["Der Client muss alle Server selbst fragen.","Der befragte Resolver übernimmt die komplette Arbeit der Auflösung für den Client.","Die Anfrage wird abgebrochen, wenn der erste Server nicht antwortet.","Die Antwort wird nicht gespeichert."],ans:1,exp:"Bei einer rekursiven Anfrage übernimmt der Resolver die gesamte Auflösungsarbeit und liefert dem Client das fertige Ergebnis."},
+  {q:"Warum wird NAT (Network Address Translation) benötigt?",opts:["Um die Internetgeschwindigkeit zu verdoppeln.","Aufgrund des Mangels an öffentlichen IPv4-Adressen.","Um WLAN-Signale zu verstärken.","Zur Umwandlung von Kupfer- in Glasfasersignale."],ans:1,exp:"NAT spart öffentliche IPv4-Adressen, indem private Adressen im internen Netz verwendet und nach außen übersetzt werden."},
+  {q:"Was beschreibt \"PAT\" (Port Address Translation / NAT Overload)?",opts:["Die feste 1:1 Zuordnung von IPs.","Dass sich viele interne Geräte eine einzige öffentliche IP teilen (Unterscheidung durch Ports).","Das Sperren von Ports für die Firewall.","Die automatische Vergabe von MAC-Adressen."],ans:1,exp:"PAT nutzt Portnummern, um viele interne Hosts hinter einer einzigen öffentlichen IP-Adresse zu unterscheiden."},
+  {q:"Welcher der folgenden Bereiche gehört zu den privaten IP-Adressen?",opts:["8.8.8.8","172.16.0.0 bis 172.31.255.255","1.1.1.1","224.0.0.9"],ans:1,exp:"Der Bereich 172.16.0.0 – 172.31.255.255 ist laut RFC 1918 als privat definiert. 8.8.8.8 und 1.1.1.1 sind öffentliche DNS-Server."}
+];
+
+let cur=0, score=0, selected=null, checked=false;
+const results=[];
+const letters=['A','B','C','D'];
+
+function render(){
+  const d=Q[cur];
+  document.getElementById('progress-bar').style.width=((cur/Q.length)*100)+'%';
+  document.getElementById('q-counter').textContent='Frage '+(cur+1)+' von '+Q.length;
+  document.getElementById('score-badge').textContent='Punkte: '+score;
+  document.getElementById('question-text').textContent=(cur+1)+'. '+d.q;
+  const oc=document.getElementById('options');
+  oc.innerHTML='';
+  d.opts.forEach((o,i)=>{
+    const div=document.createElement('div');
+    div.className='option';
+    div.innerHTML='<span class="opt-letter">'+letters[i]+')</span><span>'+o+'</span>';
+    div.addEventListener('click',()=>selectOpt(i));
+    oc.appendChild(div);
+  });
+  document.getElementById('btn-check').disabled=true;
+  document.getElementById('btn-check').style.display='block';
+  document.getElementById('explanation').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  selected=null; checked=false;
+}
+
+function selectOpt(i){
+  if(checked) return;
+  selected=i;
+  const opts=document.querySelectorAll('.option');
+  opts.forEach((o,j)=>{
+    o.className='option'+(j===i?' selected':'');
+  });
+  document.getElementById('btn-check').disabled=false;
+}
+
+document.getElementById('btn-check').addEventListener('click',()=>{
+  if(selected===null||checked) return;
+  checked=true;
+  const d=Q[cur];
+  const opts=document.querySelectorAll('.option');
+  opts.forEach(o=>o.classList.add('disabled'));
+  if(selected===d.ans){
+    opts[selected].className='option correct disabled';
+    score++;
+  } else {
+    opts[selected].className='option wrong disabled';
+    opts[d.ans].className='option correct disabled';
+  }
+  results.push({q:d.q,chosen:selected,correct:d.ans,ok:selected===d.ans,opts:d.opts});
+  document.getElementById('score-badge').textContent='Punkte: '+score;
+  const ex=document.getElementById('explanation');
+  ex.textContent=d.exp;
+  ex.style.display='block';
+  document.getElementById('btn-check').style.display='none';
+  const bn=document.getElementById('btn-next');
+  bn.style.display='block';
+  bn.textContent=cur<Q.length-1?'Nächste Frage →':'Ergebnis anzeigen';
+});
+
+document.getElementById('btn-next').addEventListener('click',()=>{
+  cur++;
+  if(cur>=Q.length){ showSummary(); return; }
+  render();
+});
+
+function showSummary(){
+  document.getElementById('card').style.display='none';
+  document.getElementById('meta').style.display='none';
+  document.getElementById('progress-bar-bg').style.display='none';
+  const wrong=Q.length-score;
+  const pct=Math.round((score/Q.length)*100);
+  document.getElementById('s-correct').textContent=score;
+  document.getElementById('s-wrong').textContent=wrong;
+  document.getElementById('s-pct').textContent=pct+'%';
+  let medal='';
+  if(pct>=90) medal='Ausgezeichnet!';
+  else if(pct>=70) medal='Gut gemacht!';
+  else if(pct>=50) medal='Weiter üben!';
+  else medal='Mehr Lernen nötig.';
+  document.getElementById('sum-title').textContent='Ergebnis: '+score+'/'+Q.length+' – '+medal;
+  const rv=document.getElementById('sum-review');
+  rv.innerHTML='<div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:4px;">Detailübersicht</div>';
+  results.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='rev-item';
+    const tag=r.ok?'<span class="rev-tag tag-ok">Richtig</span>':'<span class="rev-tag tag-err">Falsch</span>';
+    const ans=r.ok?'':(': Richtig wäre "'+letters[r.correct]+') '+r.opts[r.correct]+'"');
+    d.innerHTML='<div class="rev-q">'+tag+(i+1)+'. '+r.q+'</div><div class="rev-ans">Deine Antwort: '+letters[r.chosen]+') '+r.opts[r.chosen]+ans+'</div>';
+    rv.appendChild(d);
+  });
+  document.getElementById('summary').style.display='block';
+}
+
+document.getElementById('btn-restart').addEventListener('click',()=>{
+  cur=0; score=0; selected=null; checked=false; results.length=0;
+  document.getElementById('summary').style.display='none';
+  document.getElementById('card').style.display='block';
+  document.getElementById('meta').style.display='flex';
+  document.getElementById('progress-bar-bg').style.display='block';
+  render();
+});
+
+render();
+</script>
